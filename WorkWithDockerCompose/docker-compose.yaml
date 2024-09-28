@@ -1,0 +1,19 @@
+services:
+  db_mysql:
+      container_name: db_mysql
+      image: mysql
+      restart: always
+      environment:
+        MYSQL_DATABASE: cloud_storage
+        MYSQL_USER: admin
+        MYSQL_PASSWORD: 1
+        MYSQL_ROOT_PASSWORD: 1
+      volumes:
+        - ./dump/:/docker-entrypoint-initdb.d/
+  cloud_storage:
+      container_name: cloud_storage
+      build: ..
+      ports:
+        - "5555:5555"
+      volumes:
+        - ../configs/:/app/configs/
