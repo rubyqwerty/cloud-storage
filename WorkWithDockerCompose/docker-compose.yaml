@@ -10,9 +10,15 @@ services:
         MYSQL_ROOT_PASSWORD: 1
       volumes:
         - ./dump/:/docker-entrypoint-initdb.d/
+  redis:
+    container_name: redis
+    image: redis
   cloud_storage:
       container_name: cloud_storage
       build: ..
+      environment:
+         DOCKER: true
+      command: ["/app/build/cloud-storage"]
       ports:
         - "5555:5555"
       volumes:

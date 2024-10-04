@@ -7,8 +7,9 @@
 
 #pragma once
 
-#include <drogon/HttpController.h>
 #include "UserControllerBase.h"
+#include <drogon/HttpController.h>
+#include <drogon/HttpMiddleware.h>
 
 #include "User.h"
 using namespace drogon;
@@ -18,18 +19,19 @@ using namespace drogon_model::cloud_storage;
  * this class is a restful API controller for reading and writing the user table.
  */
 
-class UserController: public drogon::HttpController<UserController>, public UserControllerBase
+class UserController : public drogon::HttpController<UserController>, public UserControllerBase
 {
-  public:
+public:
     METHOD_LIST_BEGIN
-    ADD_METHOD_TO(UserController::getOne,"/user/{1}",Get,Options);
-    ADD_METHOD_TO(UserController::updateOne,"/user/{1}",Put,Options);
-    ADD_METHOD_TO(UserController::deleteOne,"/user/{1}",Delete,Options);
-    ADD_METHOD_TO(UserController::get,"/user",Get,Options);
-    ADD_METHOD_TO(UserController::create,"/user",Post,Options);
-    //ADD_METHOD_TO(UserController::update,"/user",Put,Options);
+    ADD_METHOD_TO(UserController::getOne, "/user/{1}", Get, Options);
+    ADD_METHOD_TO(UserController::updateOne, "/user/{1}", Put, Options);
+    ADD_METHOD_TO(UserController::deleteOne, "/user/{1}", Delete, Options);
+    ADD_METHOD_TO(UserController::get, "/user", Get, Options);
+    ADD_METHOD_TO(UserController::create, "/user", Post, Options);
+    // ADD_METHOD_TO(UserController::update,"/user",Put,Options);
+
     METHOD_LIST_END
-     
+
     void getOne(const HttpRequestPtr &req,
                 std::function<void(const HttpResponsePtr &)> &&callback,
                 User::PrimaryKeyType &&id);
@@ -42,6 +44,5 @@ class UserController: public drogon::HttpController<UserController>, public User
     void get(const HttpRequestPtr &req,
              std::function<void(const HttpResponsePtr &)> &&callback);
     void create(const HttpRequestPtr &req,
-             std::function<void(const HttpResponsePtr &)> &&callback);
-
+                std::function<void(const HttpResponsePtr &)> &&callback);
 };
