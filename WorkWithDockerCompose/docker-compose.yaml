@@ -15,7 +15,10 @@ services:
     image: redis
   cloud_storage:
       container_name: cloud_storage
-      build: ..
+      build:
+        context: ..
+        dockerfile: Dockerfile
+      image: cloud-storage
       environment:
          DOCKER: true
       command: ["/app/build/cloud-storage"]
