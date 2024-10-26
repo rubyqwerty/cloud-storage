@@ -1,0 +1,42 @@
+{
+    "listeners": [
+        {
+            "address": "0.0.0.0",
+            
+            "port": 5555,
+           
+            "https": false
+        }
+    ],
+    "plugins" :
+    [
+        {
+        "name": "cache::CacheChecker",
+        "dependencies": [],
+        "config": {
+            "cache" : true
+        }
+        }
+    ],
+    "db_clients": [
+        {
+            "rdbms": "sqlite3",
+            "host": "127.0.0.1",
+            "filename" : "/home/egor/projects/cloud-storage/WorkWithDockerCompose/db-create/user.db",
+            "user": "",
+            "passwd": "",
+            "timeout": -1.0
+        }
+    ],
+    "redis_clients": [
+        {
+            "host": "127.0.0.1",
+            "port": 6379,
+            "passwd": "",
+            "db": 0,
+            "is_fast": false,
+            "number_of_connections": 10,
+            "timeout": -1.0
+        }
+    ]
+}

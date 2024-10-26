@@ -1,0 +1,21 @@
+{
+    "rdbms": "sqlite3",
+    "host": "127.0.0.1",
+    "filename" : "/home/egor/projects/cloud-storage/WorkWithDockerCompose/db-create/user.db",
+    "user": "",
+    "passwd": "",
+            
+    "tables": ["user"],
+    "restful_api_controllers": {
+        "enabled": true,
+        "resource_uri": "/*",
+        "class_name": "*Controller",
+        "filters": [],
+        "db_client": {
+            "name": "default",
+            "is_fast": false
+        },
+        "directory": "controllers",
+        "generate_base_only": false
+    }
+}
