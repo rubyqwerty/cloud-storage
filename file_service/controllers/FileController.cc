@@ -6,40 +6,54 @@
  */
 
 #include "FileController.h"
+#include "kafka_client/api_Kafka.h"
+#include <drogon/HttpAppFramework.h>
+#include <drogon/HttpTypes.h>
 #include <string>
+#include <trantor/utils/Logger.h>
 
-
-void FileController::getOne(const HttpRequestPtr &req,
-                            std::function<void(const HttpResponsePtr &)> &&callback,
+void FileController::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                             File::PrimaryKeyType &&id)
 {
     FileControllerBase::getOne(req, std::move(callback), std::move(id));
 }
 
-
-void FileController::updateOne(const HttpRequestPtr &req,
-                               std::function<void(const HttpResponsePtr &)> &&callback,
+void FileController::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                                File::PrimaryKeyType &&id)
 {
     FileControllerBase::updateOne(req, std::move(callback), std::move(id));
 }
 
-
-void FileController::deleteOne(const HttpRequestPtr &req,
-                               std::function<void(const HttpResponsePtr &)> &&callback,
+void FileController::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                                File::PrimaryKeyType &&id)
 {
     FileControllerBase::deleteOne(req, std::move(callback), std::move(id));
 }
 
-void FileController::get(const HttpRequestPtr &req,
-                         std::function<void(const HttpResponsePtr &)> &&callback)
+void FileController::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     FileControllerBase::get(req, std::move(callback));
 }
 
-void FileController::create(const HttpRequestPtr &req,
-                            std::function<void(const HttpResponsePtr &)> &&callback)
+void FileController::create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
-    FileControllerBase::create(req, std::move(callback));
+    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+
+    const auto PostHandling = [callbackPtr](const HttpResponsePtr &response)
+    {
+        if (response->statusCode() == HttpStatusCode::k200OK)
+        {
+            auto json_file{response->getJsonObject()};
+
+            Json::StreamWriterBuilder builder;
+            auto file_to_verify{Json::writeString(builder, *json_file)};
+
+            drogon::app().getPlugin<api::Kafka>()->SendMessage(file_to_verify);
+            LOG_DEBUG << fmt::format("Отправлен запрос на подверждение файла: {}", file_to_verify);
+        }
+
+        (*callbackPtr)(response);
+    };
+
+    FileControllerBase::create(req, std::move(PostHandling));
 }

@@ -1,13 +1,15 @@
 
+#include "caching/cache_CacheChecker.h"
+#include "kafka_client/api_Kafka.h"
+#include <ctime>
 #include <drogon/HttpAppFramework.h>
 #include <drogon/HttpResponse.h>
 #include <drogon/HttpTypes.h>
 #include <drogon/drogon.h>
-#include <drogon/nosql/RedisClient.h>
-#include <drogon/nosql/RedisResult.h>
-#include <iterator>
-#include <json/value.h>
+#include <thread>
 #include <trantor/utils/Logger.h>
+
+#include "verify/verify.hpp"
 
 void AddHeader(const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &res)
 {
@@ -27,9 +29,15 @@ int main()
     {
         path = "../../user_service/configs/config.json";
     }
-    LOG_DEBUG << path;
+    LOG_DEBUG << fmt::format("Используется конфиг: {}", path);
+
     drogon::app().loadConfigFile(path);
     drogon::app().registerPostHandlingAdvice(AddHeader);
-    drogon::app().run();
+
+    auto t{std::thread([&]() { drogon::app().run(); })};
+    using namespace std::chrono;
+    std::this_thread::sleep_for(1s);
+    drogon::app().getPlugin<api::Kafka>()->SetCallback(verify::VerifyFile);
+    t.join();
     return 0;
 }

@@ -16,6 +16,7 @@ using namespace drogon_model::sqlite3;
 const std::string File::Cols::_id = "id";
 const std::string File::Cols::_file_name = "file_name";
 const std::string File::Cols::_file_path = "file_path";
+const std::string File::Cols::_verified_user = "verified_user";
 const std::string File::Cols::_verification_status = "verification_status";
 const std::string File::primaryKeyName = "id";
 const bool File::hasPrimaryKey = true;
@@ -25,6 +26,7 @@ const std::vector<typename File::MetaData> File::metaData_={
 {"id","int64_t","integer",8,1,1,0},
 {"file_name","std::string","text",0,0,0,1},
 {"file_path","std::string","text",0,0,0,1},
+{"verified_user","int64_t","int",8,0,0,0},
 {"verification_status","std::string","text",0,0,0,0}
 };
 const std::string &File::getColumnName(size_t index) noexcept(false)
@@ -48,6 +50,10 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
         {
             filePath_=std::make_shared<std::string>(r["file_path"].as<std::string>());
         }
+        if(!r["verified_user"].isNull())
+        {
+            verifiedUser_=std::make_shared<int64_t>(r["verified_user"].as<int64_t>());
+        }
         if(!r["verification_status"].isNull())
         {
             verificationStatus_=std::make_shared<std::string>(r["verification_status"].as<std::string>());
@@ -56,7 +62,7 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
     else
     {
         size_t offset = (size_t)indexOffset;
-        if(offset + 4 > r.size())
+        if(offset + 5 > r.size())
         {
             LOG_FATAL << "Invalid SQL result for this model";
             return;
@@ -80,6 +86,11 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 3;
         if(!r[index].isNull())
         {
+            verifiedUser_=std::make_shared<int64_t>(r[index].as<int64_t>());
+        }
+        index = offset + 4;
+        if(!r[index].isNull())
+        {
             verificationStatus_=std::make_shared<std::string>(r[index].as<std::string>());
         }
     }
@@ -88,7 +99,7 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
 
 File::File(const Json::Value &pJson, const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -122,7 +133,15 @@ File::File(const Json::Value &pJson, const std::vector<std::string> &pMasqueradi
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            verificationStatus_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
+        }
+    }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            verificationStatus_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
         }
     }
 }
@@ -153,9 +172,17 @@ File::File(const Json::Value &pJson) noexcept(false)
             filePath_=std::make_shared<std::string>(pJson["file_path"].asString());
         }
     }
-    if(pJson.isMember("verification_status"))
+    if(pJson.isMember("verified_user"))
     {
         dirtyFlag_[3]=true;
+        if(!pJson["verified_user"].isNull())
+        {
+            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson["verified_user"].asInt64());
+        }
+    }
+    if(pJson.isMember("verification_status"))
+    {
+        dirtyFlag_[4]=true;
         if(!pJson["verification_status"].isNull())
         {
             verificationStatus_=std::make_shared<std::string>(pJson["verification_status"].asString());
@@ -166,7 +193,7 @@ File::File(const Json::Value &pJson) noexcept(false)
 void File::updateByMasqueradedJson(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector) noexcept(false)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         LOG_ERROR << "Bad masquerading vector";
         return;
@@ -199,7 +226,15 @@ void File::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            verificationStatus_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
+            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
+        }
+    }
+    if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+    {
+        dirtyFlag_[4] = true;
+        if(!pJson[pMasqueradingVector[4]].isNull())
+        {
+            verificationStatus_=std::make_shared<std::string>(pJson[pMasqueradingVector[4]].asString());
         }
     }
 }
@@ -229,9 +264,17 @@ void File::updateByJson(const Json::Value &pJson) noexcept(false)
             filePath_=std::make_shared<std::string>(pJson["file_path"].asString());
         }
     }
-    if(pJson.isMember("verification_status"))
+    if(pJson.isMember("verified_user"))
     {
         dirtyFlag_[3] = true;
+        if(!pJson["verified_user"].isNull())
+        {
+            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson["verified_user"].asInt64());
+        }
+    }
+    if(pJson.isMember("verification_status"))
+    {
+        dirtyFlag_[4] = true;
         if(!pJson["verification_status"].isNull())
         {
             verificationStatus_=std::make_shared<std::string>(pJson["verification_status"].asString());
@@ -310,6 +353,28 @@ void File::setFilePath(std::string &&pFilePath) noexcept
     dirtyFlag_[2] = true;
 }
 
+const int64_t &File::getValueOfVerifiedUser() const noexcept
+{
+    static const int64_t defaultValue = int64_t();
+    if(verifiedUser_)
+        return *verifiedUser_;
+    return defaultValue;
+}
+const std::shared_ptr<int64_t> &File::getVerifiedUser() const noexcept
+{
+    return verifiedUser_;
+}
+void File::setVerifiedUser(const int64_t &pVerifiedUser) noexcept
+{
+    verifiedUser_ = std::make_shared<int64_t>(pVerifiedUser);
+    dirtyFlag_[3] = true;
+}
+void File::setVerifiedUserToNull() noexcept
+{
+    verifiedUser_.reset();
+    dirtyFlag_[3] = true;
+}
+
 const std::string &File::getValueOfVerificationStatus() const noexcept
 {
     static const std::string defaultValue = std::string();
@@ -324,17 +389,17 @@ const std::shared_ptr<std::string> &File::getVerificationStatus() const noexcept
 void File::setVerificationStatus(const std::string &pVerificationStatus) noexcept
 {
     verificationStatus_ = std::make_shared<std::string>(pVerificationStatus);
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 void File::setVerificationStatus(std::string &&pVerificationStatus) noexcept
 {
     verificationStatus_ = std::make_shared<std::string>(std::move(pVerificationStatus));
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 void File::setVerificationStatusToNull() noexcept
 {
     verificationStatus_.reset();
-    dirtyFlag_[3] = true;
+    dirtyFlag_[4] = true;
 }
 
 void File::updateId(const uint64_t id)
@@ -347,6 +412,7 @@ const std::vector<std::string> &File::insertColumns() noexcept
     static const std::vector<std::string> inCols={
         "file_name",
         "file_path",
+        "verified_user",
         "verification_status"
     };
     return inCols;
@@ -378,6 +444,17 @@ void File::outputArgs(drogon::orm::internal::SqlBinder &binder) const
     }
     if(dirtyFlag_[3])
     {
+        if(getVerifiedUser())
+        {
+            binder << getValueOfVerifiedUser();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
+    {
         if(getVerificationStatus())
         {
             binder << getValueOfVerificationStatus();
@@ -403,6 +480,10 @@ const std::vector<std::string> File::updateColumns() const
     if(dirtyFlag_[3])
     {
         ret.push_back(getColumnName(3));
+    }
+    if(dirtyFlag_[4])
+    {
+        ret.push_back(getColumnName(4));
     }
     return ret;
 }
@@ -432,6 +513,17 @@ void File::updateArgs(drogon::orm::internal::SqlBinder &binder) const
         }
     }
     if(dirtyFlag_[3])
+    {
+        if(getVerifiedUser())
+        {
+            binder << getValueOfVerifiedUser();
+        }
+        else
+        {
+            binder << nullptr;
+        }
+    }
+    if(dirtyFlag_[4])
     {
         if(getVerificationStatus())
         {
@@ -470,6 +562,14 @@ Json::Value File::toJson() const
     {
         ret["file_path"]=Json::Value();
     }
+    if(getVerifiedUser())
+    {
+        ret["verified_user"]=(Json::Int64)getValueOfVerifiedUser();
+    }
+    else
+    {
+        ret["verified_user"]=Json::Value();
+    }
     if(getVerificationStatus())
     {
         ret["verification_status"]=getValueOfVerificationStatus();
@@ -485,7 +585,7 @@ Json::Value File::toMasqueradedJson(
     const std::vector<std::string> &pMasqueradingVector) const
 {
     Json::Value ret;
-    if(pMasqueradingVector.size() == 4)
+    if(pMasqueradingVector.size() == 5)
     {
         if(!pMasqueradingVector[0].empty())
         {
@@ -522,13 +622,24 @@ Json::Value File::toMasqueradedJson(
         }
         if(!pMasqueradingVector[3].empty())
         {
-            if(getVerificationStatus())
+            if(getVerifiedUser())
             {
-                ret[pMasqueradingVector[3]]=getValueOfVerificationStatus();
+                ret[pMasqueradingVector[3]]=(Json::Int64)getValueOfVerifiedUser();
             }
             else
             {
                 ret[pMasqueradingVector[3]]=Json::Value();
+            }
+        }
+        if(!pMasqueradingVector[4].empty())
+        {
+            if(getVerificationStatus())
+            {
+                ret[pMasqueradingVector[4]]=getValueOfVerificationStatus();
+            }
+            else
+            {
+                ret[pMasqueradingVector[4]]=Json::Value();
             }
         }
         return ret;
@@ -557,6 +668,14 @@ Json::Value File::toMasqueradedJson(
     else
     {
         ret["file_path"]=Json::Value();
+    }
+    if(getVerifiedUser())
+    {
+        ret["verified_user"]=(Json::Int64)getValueOfVerifiedUser();
+    }
+    else
+    {
+        ret["verified_user"]=Json::Value();
     }
     if(getVerificationStatus())
     {
@@ -596,9 +715,14 @@ bool File::validateJsonForCreation(const Json::Value &pJson, std::string &err)
         err="The file_path column cannot be null";
         return false;
     }
+    if(pJson.isMember("verified_user"))
+    {
+        if(!validJsonOfField(3, "verified_user", pJson["verified_user"], err, true))
+            return false;
+    }
     if(pJson.isMember("verification_status"))
     {
-        if(!validJsonOfField(3, "verification_status", pJson["verification_status"], err, true))
+        if(!validJsonOfField(4, "verification_status", pJson["verification_status"], err, true))
             return false;
     }
     return true;
@@ -607,7 +731,7 @@ bool File::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                                               const std::vector<std::string> &pMasqueradingVector,
                                               std::string &err)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         err = "Bad masquerading vector";
         return false;
@@ -655,6 +779,14 @@ bool File::validateMasqueradedJsonForCreation(const Json::Value &pJson,
                   return false;
           }
       }
+      if(!pMasqueradingVector[4].empty())
+      {
+          if(pJson.isMember(pMasqueradingVector[4]))
+          {
+              if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, true))
+                  return false;
+          }
+      }
     }
     catch(const Json::LogicError &e)
     {
@@ -685,9 +817,14 @@ bool File::validateJsonForUpdate(const Json::Value &pJson, std::string &err)
         if(!validJsonOfField(2, "file_path", pJson["file_path"], err, false))
             return false;
     }
+    if(pJson.isMember("verified_user"))
+    {
+        if(!validJsonOfField(3, "verified_user", pJson["verified_user"], err, false))
+            return false;
+    }
     if(pJson.isMember("verification_status"))
     {
-        if(!validJsonOfField(3, "verification_status", pJson["verification_status"], err, false))
+        if(!validJsonOfField(4, "verification_status", pJson["verification_status"], err, false))
             return false;
     }
     return true;
@@ -696,7 +833,7 @@ bool File::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
                                             const std::vector<std::string> &pMasqueradingVector,
                                             std::string &err)
 {
-    if(pMasqueradingVector.size() != 4)
+    if(pMasqueradingVector.size() != 5)
     {
         err = "Bad masquerading vector";
         return false;
@@ -725,6 +862,11 @@ bool File::validateMasqueradedJsonForUpdate(const Json::Value &pJson,
       if(!pMasqueradingVector[3].empty() && pJson.isMember(pMasqueradingVector[3]))
       {
           if(!validJsonOfField(3, pMasqueradingVector[3], pJson[pMasqueradingVector[3]], err, false))
+              return false;
+      }
+      if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
+      {
+          if(!validJsonOfField(4, pMasqueradingVector[4], pJson[pMasqueradingVector[4]], err, false))
               return false;
       }
     }
@@ -784,6 +926,17 @@ bool File::validJsonOfField(size_t index,
             }
             break;
         case 3:
+            if(pJson.isNull())
+            {
+                return true;
+            }
+            if(!pJson.isInt64())
+            {
+                err="Type error in the "+fieldName+" field";
+                return false;
+            }
+            break;
+        case 4:
             if(pJson.isNull())
             {
                 return true;

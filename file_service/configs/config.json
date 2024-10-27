@@ -17,5 +17,17 @@
             "passwd": "",
             "timeout": -1.0
         }
+    ],
+    "plugins" :
+    [
+        {
+            "name": "api::Kafka",
+            "dependencies": [],
+            "config": {
+                "broker" : "localhost",
+                "write_topic" : "verify",
+                "read_topic" : "status_verify"
+            }
+        }
     ]
 }

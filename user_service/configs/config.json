@@ -8,16 +8,6 @@
             "https": false
         }
     ],
-    "plugins" :
-    [
-        {
-        "name": "cache::CacheChecker",
-        "dependencies": [],
-        "config": {
-            "cache" : true
-        }
-        }
-    ],
     "db_clients": [
         {
             "rdbms": "sqlite3",
@@ -37,6 +27,25 @@
             "is_fast": false,
             "number_of_connections": 10,
             "timeout": -1.0
+        }
+    ],
+    "plugins" :
+    [
+        {
+            "name" : "cache::CacheManager",
+            "dependencies": [],
+            "config": {
+                "cache" : true
+            }
+        },
+        {
+           "name": "api::Kafka",
+            "dependencies": [],
+            "config": {
+                "broker" : "localhost",
+                "write_topic" : "status_verify",
+                "read_topic" : "verify"
+            }
         }
     ]
 }

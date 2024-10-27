@@ -2,10 +2,12 @@ cmake_minimum_required(VERSION 3.5)
 project(cloud-storage CXX)
 
 list(APPEND Modules
-    file_service
-    user_service
+    caching
+    kafka_client
     kafka/consumer
     kafka/producer
+    file_service
+    user_service
 )
 
 foreach(module ${Modules})

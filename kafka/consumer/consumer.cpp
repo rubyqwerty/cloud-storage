@@ -1,20 +1,20 @@
 #include "consumer.hpp"
 #include "kafka-exception.hpp"
 
-Consumer::Consumer(const std::string &broker, const std::vector<std::string> &topics, std::string group_id)
+Consumer::Consumer(const std::string &broker, const std::string &topics, std::string group_id)
     : broker_(broker), topics_(topics), group_id_(group_id)
 {
     MakeConfig();
     consumer_.reset(GetConsumer());
 
-    auto status = consumer_->subscribe(topics_);
+    auto status = consumer_->subscribe({topics_});
     CheckStatus(status);
 };
 
 std::optional<std::string> Consumer::GetMessage()
 {
 
-    MessagePtr message{consumer_->consume(100000)};
+    MessagePtr message{consumer_->consume(10000)};
     if (message->err() == RdKafka::ERR_NO_ERROR)
     {
         int len = static_cast<int>(message->len());

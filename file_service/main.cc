@@ -1,3 +1,5 @@
+#include "kafka_client/api_Kafka.h"
+#include "update_file/update_file.hpp"
 #include <drogon/HttpAppFramework.h>
 #include <drogon/HttpResponse.h>
 #include <drogon/HttpTypes.h>
@@ -28,7 +30,12 @@ int main()
     }
     LOG_DEBUG << path;
     drogon::app().loadConfigFile(path);
-    drogon::app().registerPostHandlingAdvice(AddHeader);
-    drogon::app().run();
+
+    auto t{std::thread([&]() { drogon::app().run(); })};
+    using namespace std::chrono;
+    std::this_thread::sleep_for(1s);
+    drogon::app().getPlugin<api::Kafka>()->SetCallback(update_file::UpdateFileBeforeVerify);
+    t.join();
+    return 0;
     return 0;
 }

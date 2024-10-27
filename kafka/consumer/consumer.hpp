@@ -11,7 +11,8 @@ using MessagePtr = std::unique_ptr<RdKafka::Message>;
 class Consumer
 {
 public:
-    Consumer(const std::string &broker, const std::vector<std::string> &topics, std::string group_id);
+    Consumer(const std::string &broker, const std::string &topic, std::string group_id);
+    Consumer() = default;
 
     std::optional<std::string> GetMessage();
 
@@ -29,6 +30,6 @@ private:
     ConfPtr conf_{};
 
     std::string broker_{};
-    std::vector<std::string> topics_{};
+    std::string topics_{};
     std::string group_id_{};
 };

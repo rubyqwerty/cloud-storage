@@ -1,4 +1,4 @@
-#include "kafka-exception.hpp"
+#include "../kafka-exception.hpp"
 #include <librdkafka/rdkafkacpp.h>
 #include <memory>
 
@@ -8,6 +8,7 @@ using ConfPtr = std::unique_ptr<RdKafka::Conf>;
 class Producer
 {
 public:
+    Producer() = default;
     Producer(const std::string &broker, const std::string &topic) : topic_(topic)
     {
         ConfPtr conf{RdKafka::Conf::create(RdKafka::Conf::CONF_GLOBAL)};

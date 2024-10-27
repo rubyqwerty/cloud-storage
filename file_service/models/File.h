@@ -47,6 +47,7 @@ class File
         static const std::string _id;
         static const std::string _file_name;
         static const std::string _file_path;
+        static const std::string _verified_user;
         static const std::string _verification_status;
     };
 
@@ -126,6 +127,15 @@ class File
     void setFilePath(const std::string &pFilePath) noexcept;
     void setFilePath(std::string &&pFilePath) noexcept;
 
+    /**  For column verified_user  */
+    ///Get the value of the column verified_user, returns the default value if the column is null
+    const int64_t &getValueOfVerifiedUser() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<int64_t> &getVerifiedUser() const noexcept;
+    ///Set the value of the column verified_user
+    void setVerifiedUser(const int64_t &pVerifiedUser) noexcept;
+    void setVerifiedUserToNull() noexcept;
+
     /**  For column verification_status  */
     ///Get the value of the column verification_status, returns the default value if the column is null
     const std::string &getValueOfVerificationStatus() const noexcept;
@@ -137,7 +147,7 @@ class File
     void setVerificationStatusToNull() noexcept;
 
 
-    static size_t getColumnNumber() noexcept {  return 4;  }
+    static size_t getColumnNumber() noexcept {  return 5;  }
     static const std::string &getColumnName(size_t index) noexcept(false);
 
     Json::Value toJson() const;
@@ -161,6 +171,7 @@ class File
     std::shared_ptr<int64_t> id_;
     std::shared_ptr<std::string> fileName_;
     std::shared_ptr<std::string> filePath_;
+    std::shared_ptr<int64_t> verifiedUser_;
     std::shared_ptr<std::string> verificationStatus_;
     struct MetaData
     {
@@ -173,7 +184,7 @@ class File
         const bool notNull_;
     };
     static const std::vector<MetaData> metaData_;
-    bool dirtyFlag_[4]={ false };
+    bool dirtyFlag_[5]={ false };
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
@@ -203,10 +214,19 @@ class File
         }
         if(dirtyFlag_[3])
         {
-            sql += "verification_status,";
+            sql += "verified_user,";
             ++parametersCount;
         }
         if(!dirtyFlag_[3])
+        {
+            needSelection=true;
+        }
+        if(dirtyFlag_[4])
+        {
+            sql += "verification_status,";
+            ++parametersCount;
+        }
+        if(!dirtyFlag_[4])
         {
             needSelection=true;
         }
@@ -229,6 +249,11 @@ class File
 
         }
         if(dirtyFlag_[3])
+        {
+            sql.append("?,");
+
+        }
+        if(dirtyFlag_[4])
         {
             sql.append("?,");
 

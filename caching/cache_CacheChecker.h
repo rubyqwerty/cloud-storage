@@ -10,14 +10,15 @@
 #include <drogon/HttpTypes.h>
 #include <drogon/drogon_callbacks.h>
 #include <drogon/plugins/Plugin.h>
+#include <optional>
 
 namespace cache
 {
 
-    class CacheChecker : public drogon::Plugin<CacheChecker>
+    class CacheManager : public drogon::Plugin<CacheManager>
     {
     public:
-        CacheChecker() {}
+        CacheManager() {}
         /// This method must be called by drogon to initialize and start the plugin.
         /// It must be implemented by the user.
         void initAndStart(const Json::Value &config) override;
@@ -26,13 +27,9 @@ namespace cache
         /// It must be implemented by the user.
         void shutdown() override;
 
-    private:
-        static void CheckCachedData(const drogon::HttpRequestPtr &req, drogon::AdviceCallback &&callback,
-                                    drogon::AdviceChainCallback &&next_advice);
+        void AddCache(const std::string &key, const std::string &value);
 
-        static void AddCacheData(const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr &resp);
-
-        static bool IsCached(const drogon::HttpRequestPtr &req);
+        std::optional<std::string> GetCache(const std::string &key);
     };
 
 }

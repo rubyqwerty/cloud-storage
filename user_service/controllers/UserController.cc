@@ -6,40 +6,67 @@
  */
 
 #include "UserController.h"
+#include "caching/cache_CacheChecker.h"
+#include <drogon/HttpAppFramework.h>
+#include <fmt/format.h>
 #include <string>
+#include <trantor/utils/Logger.h>
 
-
-void UserController::getOne(const HttpRequestPtr &req,
-                            std::function<void(const HttpResponsePtr &)> &&callback,
+void UserController::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                             User::PrimaryKeyType &&id)
 {
-    UserControllerBase::getOne(req, std::move(callback), std::move(id));
+    auto cache = drogon::app().getPlugin<cache::CacheManager>()->GetCache(req->path());
+
+    if (cache.has_value())
+    {
+        auto response{drogon::HttpResponse::newHttpResponse(HttpStatusCode::k200OK, ContentType::CT_APPLICATION_JSON)};
+
+        response->setBody(cache.value());
+
+        callback(response);
+
+        LOG_DEBUG << fmt::format("По запросу: {}\nВернулись кешированные данные: {}", req->path(), cache.value());
+
+        return;
+    }
+
+    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+
+    const auto PostHandling = [callbackPtr, key = req->path()](const HttpResponsePtr &response)
+    {
+        if (response->statusCode() == HttpStatusCode::k200OK)
+        {
+            Json::StreamWriterBuilder builder;
+            auto value{Json::writeString(builder, *response->getJsonObject())};
+            drogon::app().getPlugin<cache::CacheManager>()->AddCache(key, value);
+
+            LOG_DEBUG << fmt::format("Для пути {} добавлен кеш {}", key, value);
+        }
+
+        (*callbackPtr)(response);
+    };
+
+    UserControllerBase::getOne(req, std::move(PostHandling), std::move(id));
 }
 
-
-void UserController::updateOne(const HttpRequestPtr &req,
-                               std::function<void(const HttpResponsePtr &)> &&callback,
+void UserController::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                                User::PrimaryKeyType &&id)
 {
     UserControllerBase::updateOne(req, std::move(callback), std::move(id));
 }
 
-
-void UserController::deleteOne(const HttpRequestPtr &req,
-                               std::function<void(const HttpResponsePtr &)> &&callback,
+void UserController::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
                                User::PrimaryKeyType &&id)
 {
     UserControllerBase::deleteOne(req, std::move(callback), std::move(id));
 }
 
-void UserController::get(const HttpRequestPtr &req,
-                         std::function<void(const HttpResponsePtr &)> &&callback)
+void UserController::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     UserControllerBase::get(req, std::move(callback));
 }
 
-void UserController::create(const HttpRequestPtr &req,
-                            std::function<void(const HttpResponsePtr &)> &&callback)
+void UserController::create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
 {
     UserControllerBase::create(req, std::move(callback));
 }
