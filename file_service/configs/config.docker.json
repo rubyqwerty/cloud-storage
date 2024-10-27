@@ -12,7 +12,7 @@
         {
             "rdbms": "sqlite3",
             "host": "127.0.0.1",
-            "filename" : "${HOME}/projects/cloud-storage/WorkWithDockerCompose/db-create/file.db",
+            "filename" : "/app/WorkWithDockerCompose/db-create/file.db",
             "user": "",
             "passwd": "",
             "timeout": -1.0
@@ -24,10 +24,13 @@
            "name": "api::Kafka",
             "dependencies": [],
             "config": {
-                "broker" : "localhost",
-                "write_topic" : "status_verify",
-                "read_topic" : "verify"
+                "broker" : "kafka",
+                "write_topic" : "verify",
+                "read_topic" : "status_verify"
             }
         }
-    ]
+    ],
+    "log" : {
+        "level" : "DEBUG"
+    }
 }

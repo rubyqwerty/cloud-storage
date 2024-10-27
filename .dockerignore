@@ -3,4 +3,3 @@ build
 .vscode
 .clang-format
 config*
-WorkWithDockerCompose

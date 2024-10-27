@@ -30,7 +30,6 @@ int main()
     }
     LOG_DEBUG << path;
     drogon::app().loadConfigFile(path);
-
     auto t{std::thread([&]() { drogon::app().run(); })};
     using namespace std::chrono;
     std::this_thread::sleep_for(1s);

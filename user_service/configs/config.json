@@ -12,7 +12,7 @@
         {
             "rdbms": "sqlite3",
             "host": "127.0.0.1",
-            "filename" : "/home/egor/projects/cloud-storage/WorkWithDockerCompose/db-create/user.db",
+            "filename" : "${HOME}/projects/cloud-storage/WorkWithDockerCompose/db-create/user.db",
             "user": "",
             "passwd": "",
             "timeout": -1.0
