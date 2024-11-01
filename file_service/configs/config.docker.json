@@ -12,7 +12,7 @@
         {
             "rdbms": "sqlite3",
             "host": "127.0.0.1",
-            "filename" : "/app/WorkWithDockerCompose/db-create/file.db",
+            "filename" : "/app/db/file.db",
             "user": "",
             "passwd": "",
             "timeout": -1.0

@@ -15,6 +15,14 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG4J_LOGGERS : kafka.controller=ERROR,state.change.logger=ERROR,kafka=ERROR,org.apache.kafka=ERROR
+    command: >
+      sh -c "
+        wait-for-it.sh  kafka:9092 -- /usr/bin/kafka-topics --create --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic verify && \
+        /usr/bin/kafka-topics --create --bootstrap-server kafka:9092 --replication-factor 1 --partitions 1 --topic status_verify &
+        /etc/confluent/docker/run
+      "
+    volumes:
+      - ./wait-for-it.sh:/bin/wait-for-it.sh
   redis:
     container_name: redis
     image: redis
@@ -25,11 +33,14 @@ services:
       build: ..
       environment:
          DOCKER: true
-      entrypoint: ["/app/WorkWithDockerCompose/wait-for-it.sh", "kafka:9092", "--", "/app/build/user_service/user_service"]
+      command: >
+        wait-for-it.sh kafka:9092 -- /app/build/user_service/user_service
       ports:
         - "5555:5555"
       volumes:
         - ../user_service/configs/:/app/user_service/configs/
+        - ./db-create/:/app/db/
+        - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
   file_service:
       depends_on:
         - kafka
@@ -37,8 +48,11 @@ services:
       build: ..
       environment:
          DOCKER: true
-      entrypoint: ["/app/WorkWithDockerCompose/wait-for-it.sh", "kafka:9092", "--", "/app/build/file_service/file_service"]
+      command: >
+        wait-for-it.sh kafka:9092 -- /app/build/file_service/file_service
       ports:
         - "5556:5556"
       volumes:
         - ../file_service/configs/:/app/file_service/configs/
+        - ./db-create/:/app/db/
+        - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
