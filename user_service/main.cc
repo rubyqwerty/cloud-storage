@@ -1,6 +1,6 @@
 
-#include "caching/cache_CacheChecker.h"
-#include "kafka_client/api_Kafka.h"
+#include "caching_service/cache_CacheChecker.h"
+#include "kafka_service/api_Kafka.h"
 #include <ctime>
 #include <drogon/HttpAppFramework.h>
 #include <drogon/HttpResponse.h>

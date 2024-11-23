@@ -1,4 +1,4 @@
-FROM drogonframework/drogon
+FROM drogonframework/drogon As builder
 
 WORKDIR /app
 
@@ -20,3 +20,9 @@ RUN apt-get update  && \
     apt-get install -y librdkafka-dev &&\
     mkdir build && cd build && \
     cmake .. && cmake --build . 
+
+# Этап исполнения
+FROM ubuntu:22.04
+COPY --from=builder /app/build /app/build
+COPY --from=builder /usr/lib /usr/lib
+COPY --from=builder /lib /lib

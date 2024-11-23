@@ -6,7 +6,7 @@
  */
 
 #include "UserController.h"
-#include "caching/cache_CacheChecker.h"
+#include "caching_service/cache_CacheChecker.h"
 #include <drogon/HttpAppFramework.h>
 #include <fmt/format.h>
 #include <string>
