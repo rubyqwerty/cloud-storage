@@ -9,7 +9,7 @@ include_directories(..)
 
 find_package(fmt)
 find_package(Drogon CONFIG REQUIRED)
-target_link_libraries(${PROJECT_NAME} caching fmt kafka_client Drogon::Drogon )
+target_link_libraries(${PROJECT_NAME} caching fmt kafka_client Drogon::Drogon  )
 
 aux_source_directory(controllers CTL_SRC)
 aux_source_directory(filters FILTER_SRC)
@@ -26,5 +26,7 @@ target_sources(${PROJECT_NAME}
                ${FILTER_SRC}
                ${PLUGIN_SRC}
                ${MODEL_SRC})
+
+file(COPY configs/config.docker.json configs/config.json DESTINATION ${CMAKE_BINARY_DIR}/user_service)
 
 add_subdirectory(test)

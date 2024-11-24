@@ -1,6 +1,3 @@
-
-#include "caching_service/cache_CacheChecker.h"
-#include "kafka_service/api_Kafka.h"
 #include <ctime>
 #include <drogon/HttpAppFramework.h>
 #include <drogon/HttpResponse.h>
@@ -19,16 +16,13 @@ void AddHeader(const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr 
 int main()
 {
 
-    auto is_docker{getenv("DOCKER")};
-    std::string path{};
-    if (is_docker)
+    auto config{getenv("USER_SERVICE_CONFIG")};
+    std::string path{"config.json"};
+    if (config)
     {
-        path = "/app/user_service/configs/config.docker.json";
+        path = config;
     }
-    else
-    {
-        path = "../../user_service/configs/config.json";
-    }
+
     LOG_DEBUG << fmt::format("Используется конфиг: {}", path);
 
     drogon::app().loadConfigFile(path);

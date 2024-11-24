@@ -26,4 +26,6 @@ target_sources(${PROJECT_NAME}
                ${PLUGIN_SRC}
                ${MODEL_SRC})
 
+file(COPY configs/config.docker.json configs/config.json DESTINATION ${CMAKE_BINARY_DIR}/file_service)
+
 add_subdirectory(test)

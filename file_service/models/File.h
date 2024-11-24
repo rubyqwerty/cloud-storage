@@ -129,11 +129,12 @@ class File
 
     /**  For column verified_user  */
     ///Get the value of the column verified_user, returns the default value if the column is null
-    const int64_t &getValueOfVerifiedUser() const noexcept;
+    const std::string &getValueOfVerifiedUser() const noexcept;
     ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int64_t> &getVerifiedUser() const noexcept;
+    const std::shared_ptr<std::string> &getVerifiedUser() const noexcept;
     ///Set the value of the column verified_user
-    void setVerifiedUser(const int64_t &pVerifiedUser) noexcept;
+    void setVerifiedUser(const std::string &pVerifiedUser) noexcept;
+    void setVerifiedUser(std::string &&pVerifiedUser) noexcept;
     void setVerifiedUserToNull() noexcept;
 
     /**  For column verification_status  */
@@ -171,7 +172,7 @@ class File
     std::shared_ptr<int64_t> id_;
     std::shared_ptr<std::string> fileName_;
     std::shared_ptr<std::string> filePath_;
-    std::shared_ptr<int64_t> verifiedUser_;
+    std::shared_ptr<std::string> verifiedUser_;
     std::shared_ptr<std::string> verificationStatus_;
     struct MetaData
     {

@@ -18,17 +18,15 @@ void AddHeader(const drogon::HttpRequestPtr &req, const drogon::HttpResponsePtr 
 int main()
 {
 
-    auto is_docker{getenv("DOCKER")};
-    std::string path{};
-    if (is_docker)
+    auto config{getenv("FILE_SERVICE_CONFIG")};
+    std::string path{"config.json"};
+    if (config)
     {
-        path = "/app/file_service/configs/config.docker.json";
+        path = config;
     }
-    else
-    {
-        path = "../../file_service/configs/config.json";
-    }
-    LOG_DEBUG << path;
+
+    LOG_DEBUG << fmt::format("Используется конфиг: {}", path);
+
     drogon::app().loadConfigFile(path);
     auto t{std::thread([&]() { drogon::app().run(); })};
     using namespace std::chrono;

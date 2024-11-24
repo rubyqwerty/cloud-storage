@@ -12,7 +12,7 @@
         {
             "rdbms": "sqlite3",
             "host": "127.0.0.1",
-            "filename" : "${HOME}/projects/cloud-storage/WorkWithDockerCompose/db-create/file.db",
+            "filename" : "/home/egor/projects/cloud-storage/WorkWithDockerCompose/db-create/file.db",
             "user": "",
             "passwd": "",
             "timeout": -1.0
@@ -25,8 +25,8 @@
             "dependencies": [],
             "config": {
                 "broker" : "localhost",
-                "write_topic" : "status_verify",
-                "read_topic" : "verify"
+                "write_topic" : "verify",
+                "read_topic" : "status_verify"
             }
         }
     ]

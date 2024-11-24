@@ -44,8 +44,8 @@ class User
   public:
     struct Cols
     {
-        static const std::string _id;
         static const std::string _login;
+        static const std::string _password;
         static const std::string _phone;
         static const std::string _file_count;
     };
@@ -54,7 +54,7 @@ class User
     static const std::string tableName;
     static const bool hasPrimaryKey;
     static const std::string primaryKeyName;
-    using PrimaryKeyType = int64_t;
+    using PrimaryKeyType = std::string;
     const PrimaryKeyType &getPrimaryKey() const;
 
     /**
@@ -99,15 +99,6 @@ class User
                           std::string &err,
                           bool isForCreation);
 
-    /**  For column id  */
-    ///Get the value of the column id, returns the default value if the column is null
-    const int64_t &getValueOfId() const noexcept;
-    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
-    const std::shared_ptr<int64_t> &getId() const noexcept;
-    ///Set the value of the column id
-    void setId(const int64_t &pId) noexcept;
-    void setIdToNull() noexcept;
-
     /**  For column login  */
     ///Get the value of the column login, returns the default value if the column is null
     const std::string &getValueOfLogin() const noexcept;
@@ -116,6 +107,16 @@ class User
     ///Set the value of the column login
     void setLogin(const std::string &pLogin) noexcept;
     void setLogin(std::string &&pLogin) noexcept;
+    void setLoginToNull() noexcept;
+
+    /**  For column password  */
+    ///Get the value of the column password, returns the default value if the column is null
+    const std::string &getValueOfPassword() const noexcept;
+    ///Return a shared_ptr object pointing to the column const value, or an empty shared_ptr object if the column is null
+    const std::shared_ptr<std::string> &getPassword() const noexcept;
+    ///Set the value of the column password
+    void setPassword(const std::string &pPassword) noexcept;
+    void setPassword(std::string &&pPassword) noexcept;
 
     /**  For column phone  */
     ///Get the value of the column phone, returns the default value if the column is null
@@ -158,8 +159,8 @@ class User
     void updateArgs(drogon::orm::internal::SqlBinder &binder) const;
     ///For mysql or sqlite3
     void updateId(const uint64_t id);
-    std::shared_ptr<int64_t> id_;
     std::shared_ptr<std::string> login_;
+    std::shared_ptr<std::string> password_;
     std::shared_ptr<std::string> phone_;
     std::shared_ptr<int64_t> fileCount_;
     struct MetaData
@@ -177,13 +178,13 @@ class User
   public:
     static const std::string &sqlForFindingByPrimaryKey()
     {
-        static const std::string sql="select * from " + tableName + " where id = ?";
+        static const std::string sql="select * from " + tableName + " where login = ?";
         return sql;
     }
 
     static const std::string &sqlForDeletingByPrimaryKey()
     {
-        static const std::string sql="delete from " + tableName + " where id = ?";
+        static const std::string sql="delete from " + tableName + " where login = ?";
         return sql;
     }
     std::string sqlForInserting(bool &needSelection) const
@@ -191,15 +192,24 @@ class User
         std::string sql="insert into " + tableName + " (";
         size_t parametersCount = 0;
         needSelection = false;
-        if(dirtyFlag_[1])
+        if(dirtyFlag_[0])
         {
             sql += "login,";
+            ++parametersCount;
+        }
+        if(dirtyFlag_[1])
+        {
+            sql += "password,";
             ++parametersCount;
         }
         if(dirtyFlag_[2])
         {
             sql += "phone,";
             ++parametersCount;
+        }
+        if(!dirtyFlag_[2])
+        {
+            needSelection=true;
         }
         if(dirtyFlag_[3])
         {
@@ -218,6 +228,11 @@ class User
         else
             sql += ") values (";
 
+        if(dirtyFlag_[0])
+        {
+            sql.append("?,");
+
+        }
         if(dirtyFlag_[1])
         {
             sql.append("?,");

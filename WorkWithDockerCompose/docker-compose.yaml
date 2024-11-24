@@ -24,7 +24,7 @@ services:
       container_name: user_service
       build: ..
       environment:
-         DOCKER: true
+        USER_SERVICE_CONFIG : /app/user_service/configs/config.docker.json
       command: >
         wait-for-it.sh kafka:9092 -- /app/build/user_service/user_service
       ports:
@@ -39,7 +39,7 @@ services:
       container_name: file_service
       build: ..
       environment:
-         DOCKER: true
+        FILE_SERVICE_CONFIG: /app/file_service/configs/config.docker.json
       command: >
         wait-for-it.sh kafka:9092 -- /app/build/file_service/file_service
       ports:
@@ -48,3 +48,30 @@ services:
         - ../file_service/configs/:/app/file_service/configs/
         - ./db-create/:/app/db/
         - ./wait-for-it.sh:/usr/bin/wait-for-it.sh
+  authentication_service:
+    build:
+      context: ..
+      dockerfile: Dockerfile.sharp 
+    container_name: authentication_service
+    environment:
+      USER_SERVICE_HOST: http://user_service:5555/user
+      ASPNETCORE_URLS : http://*:5225
+    ports:
+      - "5225:5225"
+    command: >
+      dotnet authentication_service.dll
+  gateway:
+    build:
+      context: ..
+      dockerfile: Dockerfile.sharp
+    container_name: gateway
+    environment:
+      ASPNETCORE_URLS: http://*:5231
+      ROUTING_CONFIG: /config/routing.json
+    volumes:
+      - ../gateway/Properties/routing.docker.json:/config/routing.json
+    ports:
+      - "5231:5231"
+    command: >
+      dotnet gateway.dll
+

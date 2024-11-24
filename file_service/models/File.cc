@@ -26,7 +26,7 @@ const std::vector<typename File::MetaData> File::metaData_={
 {"id","int64_t","integer",8,1,1,0},
 {"file_name","std::string","text",0,0,0,1},
 {"file_path","std::string","text",0,0,0,1},
-{"verified_user","int64_t","int",8,0,0,0},
+{"verified_user","std::string","text",0,0,0,0},
 {"verification_status","std::string","text",0,0,0,0}
 };
 const std::string &File::getColumnName(size_t index) noexcept(false)
@@ -52,7 +52,7 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
         }
         if(!r["verified_user"].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>(r["verified_user"].as<int64_t>());
+            verifiedUser_=std::make_shared<std::string>(r["verified_user"].as<std::string>());
         }
         if(!r["verification_status"].isNull())
         {
@@ -86,7 +86,7 @@ File::File(const Row &r, const ssize_t indexOffset) noexcept
         index = offset + 3;
         if(!r[index].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>(r[index].as<int64_t>());
+            verifiedUser_=std::make_shared<std::string>(r[index].as<std::string>());
         }
         index = offset + 4;
         if(!r[index].isNull())
@@ -133,7 +133,7 @@ File::File(const Json::Value &pJson, const std::vector<std::string> &pMasqueradi
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
+            verifiedUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -177,7 +177,7 @@ File::File(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[3]=true;
         if(!pJson["verified_user"].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson["verified_user"].asInt64());
+            verifiedUser_=std::make_shared<std::string>(pJson["verified_user"].asString());
         }
     }
     if(pJson.isMember("verification_status"))
@@ -226,7 +226,7 @@ void File::updateByMasqueradedJson(const Json::Value &pJson,
         dirtyFlag_[3] = true;
         if(!pJson[pMasqueradingVector[3]].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson[pMasqueradingVector[3]].asInt64());
+            verifiedUser_=std::make_shared<std::string>(pJson[pMasqueradingVector[3]].asString());
         }
     }
     if(!pMasqueradingVector[4].empty() && pJson.isMember(pMasqueradingVector[4]))
@@ -269,7 +269,7 @@ void File::updateByJson(const Json::Value &pJson) noexcept(false)
         dirtyFlag_[3] = true;
         if(!pJson["verified_user"].isNull())
         {
-            verifiedUser_=std::make_shared<int64_t>((int64_t)pJson["verified_user"].asInt64());
+            verifiedUser_=std::make_shared<std::string>(pJson["verified_user"].asString());
         }
     }
     if(pJson.isMember("verification_status"))
@@ -353,20 +353,25 @@ void File::setFilePath(std::string &&pFilePath) noexcept
     dirtyFlag_[2] = true;
 }
 
-const int64_t &File::getValueOfVerifiedUser() const noexcept
+const std::string &File::getValueOfVerifiedUser() const noexcept
 {
-    static const int64_t defaultValue = int64_t();
+    static const std::string defaultValue = std::string();
     if(verifiedUser_)
         return *verifiedUser_;
     return defaultValue;
 }
-const std::shared_ptr<int64_t> &File::getVerifiedUser() const noexcept
+const std::shared_ptr<std::string> &File::getVerifiedUser() const noexcept
 {
     return verifiedUser_;
 }
-void File::setVerifiedUser(const int64_t &pVerifiedUser) noexcept
+void File::setVerifiedUser(const std::string &pVerifiedUser) noexcept
 {
-    verifiedUser_ = std::make_shared<int64_t>(pVerifiedUser);
+    verifiedUser_ = std::make_shared<std::string>(pVerifiedUser);
+    dirtyFlag_[3] = true;
+}
+void File::setVerifiedUser(std::string &&pVerifiedUser) noexcept
+{
+    verifiedUser_ = std::make_shared<std::string>(std::move(pVerifiedUser));
     dirtyFlag_[3] = true;
 }
 void File::setVerifiedUserToNull() noexcept
@@ -564,7 +569,7 @@ Json::Value File::toJson() const
     }
     if(getVerifiedUser())
     {
-        ret["verified_user"]=(Json::Int64)getValueOfVerifiedUser();
+        ret["verified_user"]=getValueOfVerifiedUser();
     }
     else
     {
@@ -624,7 +629,7 @@ Json::Value File::toMasqueradedJson(
         {
             if(getVerifiedUser())
             {
-                ret[pMasqueradingVector[3]]=(Json::Int64)getValueOfVerifiedUser();
+                ret[pMasqueradingVector[3]]=getValueOfVerifiedUser();
             }
             else
             {
@@ -671,7 +676,7 @@ Json::Value File::toMasqueradedJson(
     }
     if(getVerifiedUser())
     {
-        ret["verified_user"]=(Json::Int64)getValueOfVerifiedUser();
+        ret["verified_user"]=getValueOfVerifiedUser();
     }
     else
     {
@@ -930,7 +935,7 @@ bool File::validJsonOfField(size_t index,
             {
                 return true;
             }
-            if(!pJson.isInt64())
+            if(!pJson.isString())
             {
                 err="Type error in the "+fieldName+" field";
                 return false;

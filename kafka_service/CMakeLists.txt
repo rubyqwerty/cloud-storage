@@ -10,4 +10,4 @@ aux_source_directory(. SRC)
 
 add_library(${PROJECT_NAME} STATIC ${SRC})
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Drogon::Drogon rdkafka++ fmt producer consumer)
+target_link_libraries(${PROJECT_NAME} Drogon::Drogon fmt producer consumer)

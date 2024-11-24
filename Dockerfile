@@ -21,8 +21,6 @@ RUN apt-get update  && \
     mkdir build && cd build && \
     cmake .. && cmake --build . 
 
-# Этап исполнения
 FROM ubuntu:22.04
 COPY --from=builder /app/build /app/build
-COPY --from=builder /usr/lib /usr/lib
-COPY --from=builder /lib /lib
+COPY --from=builder /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/

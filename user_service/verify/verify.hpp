@@ -3,6 +3,8 @@
 #include <ctime>
 #include <drogon/HttpAppFramework.h>
 #include <drogon/drogon.h>
+#include <exception>
+#include <fmt/format.h>
 #include <iomanip>
 #include <json/reader.h>
 #include <json/value.h>
@@ -31,15 +33,21 @@ namespace verify
         return json_value;
     }
 
-    inline bool CheckUser(const int &id)
+    inline bool CheckUser(const std::string &login)
+    try
     {
         LOG_DEBUG << fmt::format("Проверка пользователя...");
 
-        auto sql_command{fmt::format(R"(select (id) from user where id = {})", id)};
+        auto sql_command{fmt::format(R"(select (login) from user where login = "{}")", login)};
 
         auto status = drogon::app().getDbClient()->execSqlSync(sql_command);
 
         return status.size();
+    }
+    catch (const std::exception &ex)
+    {
+        LOG_WARN << fmt::format("Ошибка проверки пользователя: {}", ex.what());
+        return false;
     }
 
     inline void VerifyFile(const std::string &message)
@@ -50,12 +58,13 @@ namespace verify
             return;
 
         auto file = status.value();
-        auto id_user{file["verified_user"].asInt()};
-        auto check_status{CheckUser(id_user)};
+        auto login_user{file["verified_user"].asString()};
+        auto check_status{CheckUser(login_user)};
 
         if (!check_status)
         {
-            LOG_WARN << fmt::format("Файл не может быть верифицирован: отсутствует пользователь с id: {}", id_user);
+            LOG_WARN << fmt::format("Файл не может быть верифицирован: отсутствует пользователь с login: {}",
+                                    login_user);
 
             return;
         }

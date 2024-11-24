@@ -9,26 +9,31 @@
 #include "UserControllerBase.h"
 #include <string>
 
-void UserControllerBase::getOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
+void UserControllerBase::getOne(const HttpRequestPtr &req,
+                                std::function<void(const HttpResponsePtr &)> &&callback,
                                 User::PrimaryKeyType &&id)
 {
 
     auto dbClientPtr = getDbClient();
-    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+    auto callbackPtr =
+        std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+            std::move(callback));
     drogon::orm::Mapper<User> mapper(dbClientPtr);
     mapper.findByPrimaryKey(
-        id, [req, callbackPtr, this](User r) { (*callbackPtr)(HttpResponse::newHttpJsonResponse(makeJson(req, r))); },
-        [callbackPtr](const DrogonDbException &e)
-        {
-            const drogon::orm::UnexpectedRows *s = dynamic_cast<const drogon::orm::UnexpectedRows *>(&e.base());
-            if (s)
+        id,
+        [req, callbackPtr, this](User r) {
+            (*callbackPtr)(HttpResponse::newHttpJsonResponse(makeJson(req, r)));
+        },
+        [callbackPtr](const DrogonDbException &e) {
+            const drogon::orm::UnexpectedRows *s=dynamic_cast<const drogon::orm::UnexpectedRows *>(&e.base());
+            if(s)
             {
                 auto resp = HttpResponse::newHttpResponse();
                 resp->setStatusCode(k404NotFound);
                 (*callbackPtr)(resp);
                 return;
             }
-            LOG_ERROR << e.base().what();
+            LOG_ERROR<<e.base().what();
             Json::Value ret;
             ret["error"] = "database error";
             auto resp = HttpResponse::newHttpJsonResponse(ret);
@@ -37,39 +42,41 @@ void UserControllerBase::getOne(const HttpRequestPtr &req, std::function<void(co
         });
 }
 
-void UserControllerBase::updateOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
+
+void UserControllerBase::updateOne(const HttpRequestPtr &req,
+                                   std::function<void(const HttpResponsePtr &)> &&callback,
                                    User::PrimaryKeyType &&id)
 {
-    auto jsonPtr = req->jsonObject();
-    if (!jsonPtr)
+    auto jsonPtr=req->jsonObject();
+    if(!jsonPtr)
     {
         Json::Value ret;
-        ret["error"] = "No json object is found in the request";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        ret["error"]="No json object is found in the request";
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
         return;
     }
     User object;
     std::string err;
-    if (!doCustomValidations(*jsonPtr, err))
+    if(!doCustomValidations(*jsonPtr, err))
     {
         Json::Value ret;
         ret["error"] = err;
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
         return;
     }
     try
     {
-        if (isMasquerading())
+        if(isMasquerading())
         {
-            if (!User::validateMasqueradedJsonForUpdate(*jsonPtr, masqueradingVector(), err))
+            if(!User::validateMasqueradedJsonForUpdate(*jsonPtr, masqueradingVector(), err))
             {
                 Json::Value ret;
                 ret["error"] = err;
-                auto resp = HttpResponse::newHttpJsonResponse(ret);
+                auto resp= HttpResponse::newHttpJsonResponse(ret);
                 resp->setStatusCode(k400BadRequest);
                 callback(resp);
                 return;
@@ -78,11 +85,11 @@ void UserControllerBase::updateOne(const HttpRequestPtr &req, std::function<void
         }
         else
         {
-            if (!User::validateJsonForUpdate(*jsonPtr, err))
+            if(!User::validateJsonForUpdate(*jsonPtr, err))
             {
                 Json::Value ret;
                 ret["error"] = err;
-                auto resp = HttpResponse::newHttpJsonResponse(ret);
+                auto resp= HttpResponse::newHttpJsonResponse(ret);
                 resp->setStatusCode(k400BadRequest);
                 callback(resp);
                 return;
@@ -90,44 +97,46 @@ void UserControllerBase::updateOne(const HttpRequestPtr &req, std::function<void
             object.updateByJson(*jsonPtr);
         }
     }
-    catch (const Json::Exception &e)
+    catch(const Json::Exception &e)
     {
         LOG_ERROR << e.what();
         Json::Value ret;
-        ret["error"] = "Field type error";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        ret["error"]="Field type error";
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
-        return;
+        return;        
     }
-    if (object.getPrimaryKey() != id)
+    if(object.getPrimaryKey() != id)
     {
         Json::Value ret;
-        ret["error"] = "Bad primary key";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        ret["error"]="Bad primary key";
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
         return;
     }
 
     auto dbClientPtr = getDbClient();
-    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+    auto callbackPtr =
+        std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+            std::move(callback));
     drogon::orm::Mapper<User> mapper(dbClientPtr);
 
     mapper.update(
         object,
-        [callbackPtr](const size_t count)
+        [callbackPtr](const size_t count) 
         {
-            if (count == 1)
+            if(count == 1)
             {
                 auto resp = HttpResponse::newHttpResponse();
                 resp->setStatusCode(k202Accepted);
                 (*callbackPtr)(resp);
             }
-            else if (count == 0)
+            else if(count == 0)
             {
                 Json::Value ret;
-                ret["error"] = "No resources are updated";
+                ret["error"]="No resources are updated";
                 auto resp = HttpResponse::newHttpJsonResponse(ret);
                 resp->setStatusCode(k404NotFound);
                 (*callbackPtr)(resp);
@@ -142,8 +151,7 @@ void UserControllerBase::updateOne(const HttpRequestPtr &req, std::function<void
                 (*callbackPtr)(resp);
             }
         },
-        [callbackPtr](const DrogonDbException &e)
-        {
+        [callbackPtr](const DrogonDbException &e) {
             LOG_ERROR << e.base().what();
             Json::Value ret;
             ret["error"] = "database error";
@@ -153,24 +161,27 @@ void UserControllerBase::updateOne(const HttpRequestPtr &req, std::function<void
         });
 }
 
-void UserControllerBase::deleteOne(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback,
+
+void UserControllerBase::deleteOne(const HttpRequestPtr &req,
+                                   std::function<void(const HttpResponsePtr &)> &&callback,
                                    User::PrimaryKeyType &&id)
 {
 
     auto dbClientPtr = getDbClient();
-    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+    auto callbackPtr =
+        std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+            std::move(callback));
     drogon::orm::Mapper<User> mapper(dbClientPtr);
     mapper.deleteByPrimaryKey(
         id,
-        [callbackPtr](const size_t count)
-        {
-            if (count == 1)
+        [callbackPtr](const size_t count) {
+            if(count == 1)
             {
                 auto resp = HttpResponse::newHttpResponse();
                 resp->setStatusCode(k204NoContent);
                 (*callbackPtr)(resp);
             }
-            else if (count == 0)
+            else if(count == 0)
             {
                 Json::Value ret;
                 ret["error"] = "No resources deleted";
@@ -188,8 +199,7 @@ void UserControllerBase::deleteOne(const HttpRequestPtr &req, std::function<void
                 (*callbackPtr)(resp);
             }
         },
-        [callbackPtr](const DrogonDbException &e)
-        {
+        [callbackPtr](const DrogonDbException &e) {
             LOG_ERROR << e.base().what();
             Json::Value ret;
             ret["error"] = "database error";
@@ -199,25 +209,26 @@ void UserControllerBase::deleteOne(const HttpRequestPtr &req, std::function<void
         });
 }
 
-void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+void UserControllerBase::get(const HttpRequestPtr &req,
+                             std::function<void(const HttpResponsePtr &)> &&callback)
 {
     auto dbClientPtr = getDbClient();
     drogon::orm::Mapper<User> mapper(dbClientPtr);
     auto &parameters = req->parameters();
     auto iter = parameters.find("sort");
-    if (iter != parameters.end())
+    if(iter != parameters.end())
     {
         auto sortFields = drogon::utils::splitString(iter->second, ",");
-        for (auto &field : sortFields)
+        for(auto &field : sortFields)
         {
-            if (field.empty())
+            if(field.empty())
                 continue;
-            if (field[0] == '+')
+            if(field[0] == '+')
             {
                 field = field.substr(1);
                 mapper.orderBy(field, SortOrder::ASC);
             }
-            else if (field[0] == '-')
+            else if(field[0] == '-')
             {
                 field = field.substr(1);
                 mapper.orderBy(field, SortOrder::DESC);
@@ -229,14 +240,13 @@ void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const
         }
     }
     iter = parameters.find("offset");
-    if (iter != parameters.end())
+    if(iter != parameters.end())
     {
-        try
-        {
+        try{
             auto offset = std::stoll(iter->second);
             mapper.offset(offset);
         }
-        catch (...)
+        catch(...)
         {
             auto resp = HttpResponse::newHttpResponse();
             resp->setStatusCode(k400BadRequest);
@@ -245,32 +255,30 @@ void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const
         }
     }
     iter = parameters.find("limit");
-    if (iter != parameters.end())
+    if(iter != parameters.end())
     {
-        try
-        {
+        try{
             auto limit = std::stoll(iter->second);
             mapper.limit(limit);
         }
-        catch (...)
+        catch(...)
         {
             auto resp = HttpResponse::newHttpResponse();
             resp->setStatusCode(k400BadRequest);
             callback(resp);
             return;
         }
-    }
-    auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+    }    
+    auto callbackPtr =
+        std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+            std::move(callback));
     auto jsonPtr = req->jsonObject();
-    if (jsonPtr && jsonPtr->isMember("filter"))
+    if(jsonPtr && jsonPtr->isMember("filter"))
     {
-        try
-        {
+        try{
             auto criteria = makeCriteria((*jsonPtr)["filter"]);
-            mapper.findBy(
-                criteria,
-                [req, callbackPtr, this](const std::vector<User> &v)
-                {
+            mapper.findBy(criteria,
+                [req, callbackPtr, this](const std::vector<User> &v) {
                     Json::Value ret;
                     ret.resize(0);
                     for (auto &obj : v)
@@ -279,17 +287,16 @@ void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const
                     }
                     (*callbackPtr)(HttpResponse::newHttpJsonResponse(ret));
                 },
-                [callbackPtr](const DrogonDbException &e)
-                {
+                [callbackPtr](const DrogonDbException &e) { 
                     LOG_ERROR << e.base().what();
                     Json::Value ret;
                     ret["error"] = "database error";
                     auto resp = HttpResponse::newHttpJsonResponse(ret);
                     resp->setStatusCode(k500InternalServerError);
-                    (*callbackPtr)(resp);
+                    (*callbackPtr)(resp);    
                 });
         }
-        catch (const std::exception &e)
+        catch(const std::exception &e)
         {
             LOG_ERROR << e.what();
             Json::Value ret;
@@ -297,14 +304,12 @@ void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const
             auto resp = HttpResponse::newHttpJsonResponse(ret);
             resp->setStatusCode(k400BadRequest);
             (*callbackPtr)(resp);
-            return;
+            return;    
         }
     }
     else
     {
-        mapper.findAll(
-            [req, callbackPtr, this](const std::vector<User> &v)
-            {
+        mapper.findAll([req, callbackPtr, this](const std::vector<User> &v) {
                 Json::Value ret;
                 ret.resize(0);
                 for (auto &obj : v)
@@ -313,47 +318,47 @@ void UserControllerBase::get(const HttpRequestPtr &req, std::function<void(const
                 }
                 (*callbackPtr)(HttpResponse::newHttpJsonResponse(ret));
             },
-            [callbackPtr](const DrogonDbException &e)
-            {
+            [callbackPtr](const DrogonDbException &e) { 
                 LOG_ERROR << e.base().what();
                 Json::Value ret;
                 ret["error"] = "database error";
                 auto resp = HttpResponse::newHttpJsonResponse(ret);
                 resp->setStatusCode(k500InternalServerError);
-                (*callbackPtr)(resp);
+                (*callbackPtr)(resp);    
             });
     }
 }
 
-void UserControllerBase::create(const HttpRequestPtr &req, std::function<void(const HttpResponsePtr &)> &&callback)
+void UserControllerBase::create(const HttpRequestPtr &req,
+                                std::function<void(const HttpResponsePtr &)> &&callback)
 {
-    auto jsonPtr = req->jsonObject();
-    if (!jsonPtr)
+    auto jsonPtr=req->jsonObject();
+    if(!jsonPtr)
     {
         Json::Value ret;
-        ret["error"] = "No json object is found in the request";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        ret["error"]="No json object is found in the request";
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
         return;
     }
     std::string err;
-    if (!doCustomValidations(*jsonPtr, err))
+    if(!doCustomValidations(*jsonPtr, err))
     {
         Json::Value ret;
         ret["error"] = err;
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
         return;
     }
-    if (isMasquerading())
+    if(isMasquerading())
     {
-        if (!User::validateMasqueradedJsonForCreation(*jsonPtr, masqueradingVector(), err))
+        if(!User::validateMasqueradedJsonForCreation(*jsonPtr, masqueradingVector(), err))
         {
             Json::Value ret;
             ret["error"] = err;
-            auto resp = HttpResponse::newHttpJsonResponse(ret);
+            auto resp= HttpResponse::newHttpJsonResponse(ret);
             resp->setStatusCode(k400BadRequest);
             callback(resp);
             return;
@@ -361,45 +366,52 @@ void UserControllerBase::create(const HttpRequestPtr &req, std::function<void(co
     }
     else
     {
-        if (!User::validateJsonForCreation(*jsonPtr, err))
+        if(!User::validateJsonForCreation(*jsonPtr, err))
         {
             Json::Value ret;
             ret["error"] = err;
-            auto resp = HttpResponse::newHttpJsonResponse(ret);
+            auto resp= HttpResponse::newHttpJsonResponse(ret);
             resp->setStatusCode(k400BadRequest);
             callback(resp);
             return;
         }
-    }
-    try
+    }   
+    try 
     {
-        User object = (isMasquerading() ? User(*jsonPtr, masqueradingVector()) : User(*jsonPtr));
+        User object = 
+            (isMasquerading()? 
+             User(*jsonPtr, masqueradingVector()) : 
+             User(*jsonPtr));
         auto dbClientPtr = getDbClient();
-        auto callbackPtr = std::make_shared<std::function<void(const HttpResponsePtr &)>>(std::move(callback));
+        auto callbackPtr =
+            std::make_shared<std::function<void(const HttpResponsePtr &)>>(
+                std::move(callback));
         drogon::orm::Mapper<User> mapper(dbClientPtr);
         mapper.insert(
-            object, [req, callbackPtr, this](User newObject)
-            { (*callbackPtr)(HttpResponse::newHttpJsonResponse(makeJson(req, newObject))); },
-            [callbackPtr](const DrogonDbException &e)
-            {
+            object,
+            [req, callbackPtr, this](User newObject){
+                (*callbackPtr)(HttpResponse::newHttpJsonResponse(
+                    makeJson(req, newObject)));
+            },
+            [callbackPtr](const DrogonDbException &e){
                 LOG_ERROR << e.base().what();
                 Json::Value ret;
                 ret["error"] = "database error";
                 auto resp = HttpResponse::newHttpJsonResponse(ret);
                 resp->setStatusCode(k500InternalServerError);
-                (*callbackPtr)(resp);
+                (*callbackPtr)(resp);   
             });
     }
-    catch (const Json::Exception &e)
+    catch(const Json::Exception &e)
     {
         LOG_ERROR << e.what();
         Json::Value ret;
-        ret["error"] = "Field type error";
-        auto resp = HttpResponse::newHttpJsonResponse(ret);
+        ret["error"]="Field type error";
+        auto resp= HttpResponse::newHttpJsonResponse(ret);
         resp->setStatusCode(k400BadRequest);
         callback(resp);
-        return;
-    }
+        return;        
+    }   
 }
 
 /*
@@ -409,17 +421,23 @@ void UserControllerBase::update(const HttpRequestPtr &req,
 
 }*/
 
-UserControllerBase::UserControllerBase() : RestfulController({"id", "login", "phone", "file_count"})
+UserControllerBase::UserControllerBase()
+    : RestfulController({
+          "login",
+          "password",
+          "phone",
+          "file_count"
+      })
 {
-    /**
-     * The items in the vector are aliases of column names in the table.
-     * if one item is set to an empty string, the related column is not sent
-     * to clients.
-     */
+   /**
+    * The items in the vector are aliases of column names in the table.
+    * if one item is set to an empty string, the related column is not sent
+    * to clients.
+    */
     enableMasquerading({
-        "id",        // the alias for the id column.
-        "login",     // the alias for the login column.
-        "phone",     // the alias for the phone column.
-        "file_count" // the alias for the file_count column.
+        "login", // the alias for the login column.
+        "password", // the alias for the password column.
+        "phone", // the alias for the phone column.
+        "file_count"  // the alias for the file_count column.
     });
 }
