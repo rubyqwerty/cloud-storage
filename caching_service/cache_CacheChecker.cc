@@ -18,12 +18,27 @@
 using namespace drogon;
 using namespace cache;
 
-void CacheManager::initAndStart(const Json::Value &config) { LOG_DEBUG << "Служба кеширования запущена"; }
+void CacheManager::initAndStart(const Json::Value &config)
+{
+
+    is_cached_ = config["cache"].asBool();
+    if (is_cached_)
+    {
+        LOG_DEBUG << "Служба кеширования запущена";
+    }
+    else
+    {
+        LOG_DEBUG << "Служба кеширования не активна";
+    }
+}
 
 void CacheManager::shutdown() {}
 
 void CacheManager::AddCache(const std::string &key, const std::string &value)
 {
+    if (!is_cached_)
+        return;
+
     drogon::app().getRedisClient()->execCommandAsync(
         [](const drogon::nosql::RedisResult &res) {}, [](const std::exception &err)
         { LOG_ERROR << "something failed!!! " << err.what(); }, "set %s %s EX 120", key.c_str(), value.c_str());
@@ -31,6 +46,8 @@ void CacheManager::AddCache(const std::string &key, const std::string &value)
 
 std::optional<std::string> CacheManager::GetCache(const std::string &key)
 {
+    if (!is_cached_)
+        return {};
 
     return drogon::app().getRedisClient()->execCommandSync(
         [](const nosql::RedisResult &res) -> std::optional<std::string>

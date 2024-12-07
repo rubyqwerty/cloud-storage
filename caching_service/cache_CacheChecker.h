@@ -30,6 +30,9 @@ namespace cache
         void AddCache(const std::string &key, const std::string &value);
 
         std::optional<std::string> GetCache(const std::string &key);
+
+    private:
+        bool is_cached_;
     };
 
 }
