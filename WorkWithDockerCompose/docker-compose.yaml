@@ -82,4 +82,4 @@ services:
     command: >  
       tail -f /dev/null
     volumes:
-      - ../int_test/appsettings.docker.json:/appsettings.json
+      - ../int_test/appsettings.docker.json:/out/appsettings.json

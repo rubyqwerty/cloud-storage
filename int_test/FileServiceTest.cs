@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace int_test;
 
-[CollectionDefinition("File Sequential Tests", DisableParallelization = true)]
+[Collection("Sequential Tests")]
 public class FileServiceTests
 {
     private readonly Handler<File, FileWithoutId> fileHandler;

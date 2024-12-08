@@ -4,6 +4,7 @@ using Xunit.Abstractions;
 
 namespace int_test;
 
+[Collection("Sequential Tests")]
 public class AuthentificationTest
 {
     private readonly Handler<User, User> userHandler;
