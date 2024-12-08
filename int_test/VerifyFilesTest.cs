@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 namespace int_test;
 
+[Collection("Sequential Tests")]
 public class VerifyFilesTests
 {
     private readonly Handler<User, User> userHandler;

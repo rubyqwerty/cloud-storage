@@ -11,6 +11,7 @@
 #include <drogon/drogon.h>
 #include <drogon/nosql/RedisException.h>
 #include <drogon/nosql/RedisResult.h>
+#include <fmt/format.h>
 #include <optional>
 #include <regex>
 #include <trantor/utils/Logger.h>
@@ -28,7 +29,7 @@ void CacheManager::initAndStart(const Json::Value &config)
     }
     else
     {
-        LOG_DEBUG << "Служба кеширования не активна";
+        LOG_DEBUG << "Служба кеширования не активна ";
     }
 }
 
@@ -42,6 +43,8 @@ void CacheManager::AddCache(const std::string &key, const std::string &value)
     drogon::app().getRedisClient()->execCommandAsync(
         [](const drogon::nosql::RedisResult &res) {}, [](const std::exception &err)
         { LOG_ERROR << "something failed!!! " << err.what(); }, "set %s %s EX 120", key.c_str(), value.c_str());
+
+    LOG_DEBUG << fmt::format("Для пути {} добавлен кеш {}", key, value);
 }
 
 std::optional<std::string> CacheManager::GetCache(const std::string &key)
@@ -50,10 +53,12 @@ std::optional<std::string> CacheManager::GetCache(const std::string &key)
         return {};
 
     return drogon::app().getRedisClient()->execCommandSync(
-        [](const nosql::RedisResult &res) -> std::optional<std::string>
+        [key](const nosql::RedisResult &res) -> std::optional<std::string>
         {
             if (res.isNil())
                 return {};
+
+            LOG_DEBUG << fmt::format("По запросу: {}\nВернулись кешированные данные: {}", key, res.asString());
             return res.asString();
         },
         "get %s", key.data());

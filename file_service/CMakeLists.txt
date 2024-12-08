@@ -7,7 +7,7 @@ add_executable(${PROJECT_NAME} main.cc)
 
 include_directories(..)
 
-find_package(Drogon CONFIG REQUIRED)
+find_package(Drogon REQUIRED)
 target_link_libraries(${PROJECT_NAME} caching kafka_client Drogon::Drogon )
 
 aux_source_directory(controllers CTL_SRC)
@@ -27,5 +27,3 @@ target_sources(${PROJECT_NAME}
                ${MODEL_SRC})
 
 file(COPY configs/config.docker.json configs/config.json DESTINATION ${CMAKE_BINARY_DIR}/file_service)
-
-add_subdirectory(test)

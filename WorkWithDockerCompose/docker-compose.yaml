@@ -74,4 +74,12 @@ services:
       - "5231:5231"
     command: >
       dotnet gateway.dll
-
+  int_test:
+    build:
+      context: ..
+      dockerfile: Dockerfile.sharp
+    container_name: int_test
+    command: >  
+      tail -f /dev/null
+    volumes:
+      - ../int_test/appsettings.docker.json:/appsettings.json

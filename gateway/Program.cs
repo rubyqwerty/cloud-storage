@@ -7,7 +7,7 @@ using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var routingConfigPath = Environment.GetEnvironmentVariable("ROUTING_CONFIG", EnvironmentVariableTarget.Machine);
+var routingConfigPath = Environment.GetEnvironmentVariable("ROUTING_CONFIG");
 if (routingConfigPath == null)
 {
     routingConfigPath = "Properties/routing.json";

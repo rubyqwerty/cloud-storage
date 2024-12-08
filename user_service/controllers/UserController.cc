@@ -25,8 +25,6 @@ void UserController::getOne(const HttpRequestPtr &req, std::function<void(const 
 
         callback(response);
 
-        LOG_DEBUG << fmt::format("По запросу: {}\nВернулись кешированные данные: {}", req->path(), cache.value());
-
         return;
     }
 
@@ -39,8 +37,6 @@ void UserController::getOne(const HttpRequestPtr &req, std::function<void(const 
             Json::StreamWriterBuilder builder;
             auto value{Json::writeString(builder, *response->getJsonObject())};
             drogon::app().getPlugin<cache::CacheManager>()->AddCache(key, value);
-
-            LOG_DEBUG << fmt::format("Для пути {} добавлен кеш {}", key, value);
         }
 
         (*callbackPtr)(response);

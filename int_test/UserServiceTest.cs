@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 namespace int_test;
 
+[CollectionDefinition("Sequential Tests", DisableParallelization = true)]
 public class UserServiceTests
 {
     private readonly Handler<User, User> userHandler;
@@ -45,9 +46,9 @@ public class UserServiceTests
     public void GetAllUsers()
     {
 
-        List<User> files = new();
+        List<User> users = new();
 
-        var exception = Record.Exception(() => files = userHandler.GetAll().Result);
+        var exception = Record.Exception(() => users = userHandler.GetAll().Result);
 
         Assert.Null(exception);
     }
@@ -67,7 +68,33 @@ public class UserServiceTests
 
         users = userHandler.GetAll().Result;
 
-        Assert.Empty(users);
+        Assert.Equal(users.Count(), 0);
+    }
+
+    [Fact]
+    public async void FailGet()
+    {
+
+        var exception = await Record.ExceptionAsync(async () => await userHandler.GetOne("unknowuser"));
+
+        Assert.NotNull(exception);
+
+        User user = new User { login = userLogin + "userToDeleteAndGet" };
+
+        exception = await Record.ExceptionAsync(async () => await userHandler.Put(user));
+        Assert.Null(exception);
+
+        User addedUser = new();
+        exception = await Record.ExceptionAsync(async () => addedUser = await userHandler.GetOne(user.login));
+        Assert.Null(exception);
+
+        Assert.Equal(addedUser.login, user.login);
+
+        exception = await Record.ExceptionAsync(async () => await userHandler.Delete(addedUser.login));
+        Assert.Null(exception);
+
+        exception = await Record.ExceptionAsync(async () => addedUser = await userHandler.GetOne(user.login));
+        Assert.NotNull(exception);
     }
 }
 

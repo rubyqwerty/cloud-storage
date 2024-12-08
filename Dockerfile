@@ -1,26 +1,18 @@
-FROM drogonframework/drogon As builder
+FROM ubuntu:22.04 As builder
 
 WORKDIR /app
 
-COPY . ./
+RUN apt-get update -yqq \
+    && apt-get install -yqq --no-install-recommends software-properties-common cmake libsqlite3-dev pip g++ make &&\
+    pip install conan
+    
 
-RUN apt-get update  && \
-    apt-get install -y \
-    build-essential \
-    libssl-dev \
-    libsasl2-dev \
-    pkg-config \
-    wget \
-    ca-certificates && \
-    wget -c http://archive.ubuntu.com/ubuntu/pool/universe/f/fmtlib/libfmt-dev_4.0.0+ds-2_amd64.deb  &&\
-    sudo apt install ./libfmt-dev_4.0.0+ds-2_amd64.deb && \ 
-    wget -qO - https://packages.confluent.io/deb/7.0/archive.key | apt-key add - && \
-    add-apt-repository "deb [arch=amd64] https://packages.confluent.io/deb/7.0 stable main" && \
-    apt-get update && \
-    apt-get install -y librdkafka-dev &&\
-    mkdir build && cd build && \
-    cmake .. && cmake --build . 
+COPY conanfile.txt .
 
-FROM ubuntu:22.04
-COPY --from=builder /app/build /app/build
-COPY --from=builder /usr/lib/x86_64-linux-gnu/*.so* /usr/lib/
+RUN  conan profile detect && conan install . --build=missing 
+
+COPY . .
+
+RUN cd build && cmake .. -DCMAKE_TOOLCHAIN_FILE=Release/generators/conan_toolchain.cmake\
+                         -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=build/Release/generators && cmake --build . 
+

@@ -2,6 +2,7 @@ using System.Diagnostics;
 
 namespace int_test;
 
+[CollectionDefinition("File Sequential Tests", DisableParallelization = true)]
 public class FileServiceTests
 {
     private readonly Handler<File, FileWithoutId> fileHandler;
@@ -44,7 +45,6 @@ public class FileServiceTests
     [Fact]
     public void GetAllFile()
     {
-
         List<File> files = new List<File>();
 
         var exception = Record.Exception(() => files = fileHandler.GetAll().Result);
@@ -68,6 +68,34 @@ public class FileServiceTests
         files = fileHandler.GetAll().Result;
 
         Assert.Empty(files);
+    }
+
+    [Fact]
+    public async void FailGet()
+    {
+
+        var exception = await Record.ExceptionAsync(async () => await fileHandler.GetOne("unknowFile"));
+
+        Assert.NotNull(exception);
+
+        FileWithoutId file = new FileWithoutId { file_name = fileName + "FileToDeleteAndGet" };
+
+        File created_file = new();
+
+        exception = await Record.ExceptionAsync(async () => created_file = await fileHandler.Put(file));
+        Assert.Null(exception);
+
+        File addedFile = new();
+        exception = await Record.ExceptionAsync(async () => addedFile = await fileHandler.GetOne(created_file.id.ToString()));
+        Assert.Null(exception);
+
+        Assert.Equal(addedFile.file_name, file.file_name);
+
+        exception = await Record.ExceptionAsync(async () => await fileHandler.Delete(addedFile.id.ToString()));
+        Assert.Null(exception);
+
+        exception = await Record.ExceptionAsync(async () => addedFile = await fileHandler.GetOne(created_file.id.ToString()));
+        Assert.NotNull(exception);
     }
 }
 
